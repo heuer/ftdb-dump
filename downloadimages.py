@@ -54,4 +54,4 @@ if __name__ == '__main__':
         db = json.load(f)
     sess = requests.session()
     download_images(sess, db['kits'].values(), path='images/kits/', size=200)
-    #download_images(sess, db['parts'].values(), path='images/parts/', size=100)
+    download_images(sess, db['parts'].values(), path='images/parts/', size=100)
