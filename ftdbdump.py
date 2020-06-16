@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # FTDB - Dump -- Downloads all construction kits from FTDB.
@@ -27,7 +28,7 @@ def download_construction_kits(sess):
     dct = _fetch_json(sess, url)
     construction_kits = {}
     parts = {}
-    result = {'construction_kits': construction_kits,
+    result = {'kits': construction_kits,
               'parts': parts}
     total_pages = dct['cPages'] + 1
     for i in range(1, total_pages):
@@ -74,8 +75,9 @@ def _parse_article_nos(dct):
     """
     article_numbers = dct.get('ft_article_nos')
     if article_numbers in (None, '[]'):
-        return None
-    return dict(json.loads(article_numbers))
+        return {}
+    # Use '' as key since JSON accepts only strings as key, not None / null
+    return dict([(k or '', v) for k, v in json.loads(article_numbers)])
 
 
 def _parse_common(dct):
@@ -87,7 +89,7 @@ def _parse_common(dct):
     :rtype: dict
     """
     res = {'id': dct['ticket_id'], 'created': dct['createdUTC'].replace(' ', 'T'),
-           'title': dct['title'], 'article_numbers': _parse_article_nos(dct),
+           'title': dct['title'].strip(), 'article_numbers': _parse_article_nos(dct),
            'uuid': dct.get('ft_variant_uuid')}
     url = 'https://ft-datenbank.de/api/ticket/{}'.format(dct['ticket_id'])
     res['url_api'] = url
@@ -148,4 +150,4 @@ if __name__ == '__main__':
     sess = requests.session()
     result = download_construction_kits(sess)
     with open('ftdb-dump-{}.json'.format(datetime.date.today().isoformat()), 'w') as f:
-        json.dump(result, f, indent=2)
+        json.dump(result, f, sort_keys=True, indent=2)
