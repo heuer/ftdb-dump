@@ -18,17 +18,25 @@ import json
 import requests
 
 
-def download_images(sess, constructs, path, size=200):
+def download_images(sess, constructs, path, size=None):
     """\
     Downloads all thumbnails and stores them in the provided path.
 
     :param sess: requests.Session
     :param constructs: Iterable of dicts with a "id" and an optional "thumbnail_url" key.
     :param str path: Path to store the images
-    :param int size: Size of the images, default: 200px
+    :param int size: Size of the images or None to fetch the picture "as it is" (default)
     """
-    for identifier, url in ((c['id'], c['thumbnail_url']) for c in constructs if c.get('thumbnail_url') is not None):
-        res = sess.get('{}?size={}'.format(url, size), stream=True)
+    def resize_url(url):
+        return '{}?size={}'.format(url, size)
+
+    def binary_url(url):
+        return url.replace('thumbnail', 'binary')
+
+    make_url = resize_url if size is not None else binary_url
+
+    for identifier, url in ((c['id'], make_url(c['thumbnail_url'])) for c in constructs if c.get('thumbnail_url') is not None):
+        res = sess.get(url, stream=True)
         res.raise_for_status()
         content_type = res.headers['Content-Type']
         ext = content_type.replace('image/', '')
