@@ -89,7 +89,7 @@ def _parse_common(dct):
     :rtype: dict
     """
     res = {'id': dct['ticket_id'], 'created': dct['createdUTC'].replace(' ', 'T'),
-           'title': dct['title'].strip(), 'article_numbers': _parse_article_nos(dct),
+           'title': dct['title'], 'article_numbers': _parse_article_nos(dct),
            'uuid': dct.get('ft_variant_uuid')}
     url = 'https://ft-datenbank.de/api/ticket/{}'.format(dct['ticket_id'])
     res['url_api'] = url
