@@ -15,6 +15,7 @@
 #
 import io
 from operator import itemgetter
+from functools import partial
 import os
 import json
 from collections import namedtuple
@@ -36,7 +37,7 @@ def create_parts_xlfile(db):
     bold_style = wb.add_format({'bold': True})
     text_style = wb.add_format({'align': 'top', 'font_color': 'black'})
     write_header(sheet, ('Bild', 'Beschreibung', 'Artikelnummer (Jahr)'), row=0, header_style=bold_style)
-    write_parts(sheet, (Row(p['id'], p['title'], p['url'], p['article_numbers']) for p in db['parts'].values()),
+    write_parts(sheet, (Row(p['id'], p['title'], p['url'], p['article_numbers']) for p in sorted(db['parts'].values(), key=itemgetter('title'))),
                 start_row=1, text_style=text_style)
     wb.close()
     with open('excel/einzelteile.xlsx', 'wb') as f:
@@ -57,6 +58,17 @@ def write_header(sheet, headers, row, header_style):
     sheet.freeze_panes(row + 1, 0)
 
 
+def _image(subdir, identifier):
+    paths = ('thumbnails', 'images')
+    extensions = ('png', 'jpeg')
+    for path in paths:
+        for ext in extensions:
+            fn = '{}/{}/{}.{}'.format(path, subdir, identifier, ext)
+            if os.path.isfile(fn):
+                return fn
+    return None
+
+
 def write_parts(sheet, rows, start_row, text_style=None):
     """\
     Writes parts specification.
@@ -67,9 +79,10 @@ def write_parts(sheet, rows, start_row, text_style=None):
     :param text_style: Format of the text cells
     """
     article_nos_col = 2
+    image = partial(_image, 'parts')
     for row_idx, row in enumerate(rows, start=start_row):
-        img = 'images/parts/{}.png'.format(row.id)
-        if os.path.isfile(img):
+        img = image(row.id)
+        if img is not None:
             sheet.insert_image(row_idx, 0, img)
         sheet.set_row(row_idx, 100)
         sheet.write_formula(row_idx, 1, '=HYPERLINK("{}","{}")'.format(row.url, row.title), text_style)
@@ -118,8 +131,8 @@ def create_kit_xlfile(db, ck):
     sheet.write(0, 0, ck['title'], title_style)
     sheet.write_formula(1, 0, '=HYPERLINK("{}")'.format(ck['url']), text_style)
     sheet.write(2, 0, _artnos(ck['article_numbers']))
-    img = 'images/kits/{}.png'.format(ck['id'])
-    if os.path.isfile(img):
+    img = _image('kits', ck['id'])
+    if img is not None:
         sheet.insert_image(3, 0, img)
         sheet.set_row(3, 180)
     write_header(sheet, ('Bild', 'Beschreibung', 'Anzahl', 'Artikelnummer (Jahr)'), row=4, header_style=bold_style)
