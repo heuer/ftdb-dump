@@ -35,7 +35,7 @@ def download_images(sess, constructs, path, size=None):
 
     make_url = resize_url if size is not None else binary_url
 
-    for identifier, url in ((c['id'], make_url(c['thumbnail_url'])) for c in constructs if c.get('thumbnail_url') is not None):
+    for identifier, url in ((c['id'], make_url(c['thumbnail_url'])) for c in constructs if c.get('thumbnail_url')):
         res = sess.get(url, stream=True)
         res.raise_for_status()
         content_type = res.headers['Content-Type']
@@ -46,18 +46,11 @@ def download_images(sess, constructs, path, size=None):
 
 
 if __name__ == '__main__':
-    try:
-        os.mkdir('images')
-    except FileExistsError:
-        pass
-    try:
-        os.mkdir('images/kits')
-    except FileExistsError:
-        pass
-    try:
-        os.mkdir('images/parts')
-    except FileExistsError:
-        pass
+    for directory in ('images', 'images/kits', 'images/parts'):
+        try:
+            os.mkdir(directory)
+        except FileExistsError:
+            pass
     with open('ftdb-dump.json', 'r') as f:
         db = json.load(f)
     sess = requests.session()

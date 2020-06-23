@@ -29,11 +29,13 @@ def crop_image(img, padding=None):
     bg = Image.new(img.mode, img.size, img.getpixel((0, 0)))
     diff = ImageChops.difference(img, bg)
     bbox = diff.getbbox()
-    if bbox:
-        if padding is not None:
-            bbox = bbox[0] - padding, bbox[1] - padding, bbox[2] + padding, bbox[3] + padding
-        return img.crop(bbox)
-    return img
+    if not bbox:
+        return img
+    if padding is not None:
+        width, height = bg.size
+        left, upper, right, lower = bbox
+        bbox = max(0, left - padding), max(0, upper - padding), min(width, right + padding), min(height, lower + padding)
+    return img.crop(bbox)
 
 
 def crop_images(source_dir, target_dir, padding=None):
@@ -61,7 +63,7 @@ def thumbnails(source_dir, target_dir, size):
     """
     mask = '*.[pj]*'
     for name, img in ((os.path.basename(name), Image.open(name)) for name in glob.glob(os.path.join(source_dir, mask))):
-        img.thumbnail(size, Image.ANTIALIAS)
+        img.thumbnail(size, Image.LANCZOS)
         img.save(os.path.join(target_dir, name))
 
 
