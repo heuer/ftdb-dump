@@ -9,7 +9,8 @@ kits and their parts (everything in category 653 of the database but not
 category 661 (fischertip)).
 
 To load the associated images, create a symbolic link "ftdb-dump.json" to 
-the file created by `ftdbdump.py`.
+the file created by `ftdbdump.py` or rename the created file to "ftdb-dump.json"
+to execute the subsequent scripts which assume this filename.
 
 Run `python downloadimages.py`.
 
