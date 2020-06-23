@@ -54,5 +54,5 @@ if __name__ == '__main__':
     with open('ftdb-dump.json', 'r') as f:
         db = json.load(f)
     sess = requests.session()
-    download_images(sess, db['kits'].values(), path='images/kits/', size=200)
-    download_images(sess, db['parts'].values(), path='images/parts/', size=100)
+    download_images(sess, db['kits'].values(), path='images/kits/')
+    download_images(sess, db['parts'].values(), path='images/parts/')
